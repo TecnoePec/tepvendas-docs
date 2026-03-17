@@ -1,0 +1,110 @@
+site_name: TepVendas Docs
+site_description: Documentacao Tecnica do TepVendas - Sistema de Gestao de Vendas e Pedidos
+site_url: https://tecnoepec.github.io/tepvendas-docs/
+repo_url: https://github.com/TecnoePec/tepvendas-docs
+repo_name: TecnoePec/tepvendas-docs
+
+theme:
+  name: material
+  language: pt-BR
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Modo escuro
+    - scheme: slate
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Modo claro
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search:
+      lang: pt
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Inicio: index.md
+  - Arquitetura:
+    - Visao Geral: arquitetura/visao-geral.md
+    - Backend: arquitetura/backend.md
+    - Frontend: arquitetura/frontend.md
+    - Mobile: arquitetura/mobile.md
+  - API Reference:
+    - Autenticacao: api/autenticacao.md
+    - Empresas: api/empresas.md
+    - Clientes: api/clientes.md
+    - Produtos: api/produtos.md
+    - Pedidos: api/pedidos.md
+    - Tabelas de Preco: api/tabelas-preco.md
+    - Frete: api/frete.md
+    - Usuarios: api/usuarios.md
+  - Guias:
+    - Setup Backend: guias/setup-backend.md
+    - Setup Frontend: guias/setup-frontend.md
+    - Setup Mobile: guias/setup-mobile.md
+    - Docker: guias/docker.md
+  - Deploy:
+    - CI/CD: deploy/ci-cd.md
+    - AWS: deploy/aws.md
+    - Terraform: deploy/terraform.md
+    - Migrations: deploy/migrations.md
+  - Dominio:
+    - Entidades: dominio/entidades.md
+    - Catalogo de Produtos: dominio/catalogo-produtos.md
+    - Tabelas de Preco: dominio/tabelas-preco.md
+    - Frete: dominio/frete.md
+    - Regras de Negocio: dominio/regras-negocio.md
+  - Seguranca:
+    - Autenticacao JWT: seguranca/autenticacao.md
+    - Multi-tenancy: seguranca/multi-tenancy.md
+    - Auditoria: seguranca/auditoria.md
+  - Observabilidade:
+    - CloudWatch: observabilidade/cloudwatch.md
+    - Sentry: observabilidade/sentry.md
+    - Logs: observabilidade/logs.md
+  - Testes:
+    - Backend: testes/backend.md
+    - Frontend: testes/frontend.md
+    - Mobile: testes/mobile.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/TecnoePec
+      name: TecnoePec no GitHub
