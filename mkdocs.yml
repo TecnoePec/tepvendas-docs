@@ -79,6 +79,7 @@ nav:
     - Setup Frontend: guias/setup-frontend.md
     - Setup Mobile: guias/setup-mobile.md
     - Docker: guias/docker.md
+    - Importadores (Frete PDF + Precos OCR): guias/importadores.md
   - Deploy:
     - CI/CD: deploy/ci-cd.md
     - AWS: deploy/aws.md
@@ -95,8 +96,8 @@ nav:
     - Multi-tenancy: seguranca/multi-tenancy.md
     - Auditoria: seguranca/auditoria.md
   - Observabilidade:
+    - Visao Geral: observabilidade/observabilidade.md
     - CloudWatch: observabilidade/cloudwatch.md
-    - Sentry: observabilidade/sentry.md
     - Logs: observabilidade/logs.md
   - Testes:
     - Backend: testes/backend.md

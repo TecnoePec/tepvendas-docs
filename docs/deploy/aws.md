@@ -13,7 +13,7 @@ Terraform em: `infrastructure/aws/account/tecnoepec/tepvendas/`
 | `ecs_services/` | Task definition, ECS service, NLB, SG, IAM, monitoring | `tepvendas.ecs.services.terraform.tfstate` |
 | `api_gateway/` | REST API, custom domain, VPC Link | `tepvendas.api.gateway.terraform.tfstate` |
 | `cloudfront_web/` | CloudFront + S3 (frontend SPA) | `tepvendas.cloudfront.web.terraform.tfstate` |
-| `cicd/` | GitHub Actions OIDC policies | `tepvendas.cicd.terraform.tfstate` |
+| `cicd/` | CodePipeline + CodeBuild (3 pipelines) + S3 buckets de artifact | `tepvendas.cicd.terraform.tfstate` |
 
 ### Ordem de Apply
 
@@ -63,6 +63,31 @@ A aplicacao .NET usa env vars customizadas (NAO usa o padrao ASP.NET `Connection
 | Health Check | `GET /health` |
 | Swagger | `GET /swagger/v1/swagger.json` |
 | API Routes | `/tepsales/v1/{resource}` |
+
+## Recursos compartilhados (multi-projeto)
+
+A conta TecnoePec-dev hospeda vários produtos compartilhando os mesmos recursos:
+
+| Recurso | Compartilhado com |
+|---------|-------------------|
+| VPC `development-vpc` (10.10.6.0/23) | tepconfina, efatah, enersync, brandbrain, legaltech |
+| ECS Cluster `main` | Todos os serviços (Fargate) |
+| NLB `main` | Todos os serviços |
+| Aurora PostgreSQL `tecnoepec-development` | tepconfina, tepvendas (banco `tepvendas`) |
+| ElastiCache Redis `development-tecnoepec` | Todos |
+| ACM `*.tecnoepec.com.br` | Todos |
+
+!!! warning "Aurora Serverless desliga fora do horário comercial"
+    O cluster Aurora é configurado com auto-stop fora do horário comercial para reduzir custo. Deploys/queries fora do horário podem falhar até o cluster reiniciar (~2 min).
+
+!!! info "Senha do Aurora rotaciona automaticamente"
+    O cluster usa `ManageMasterUserPassword`. A senha está em `arn:aws:secretsmanager:us-east-1:005200801295:secret:rds!cluster-bd261a44-...`. Quando rotaciona, o secret `development.TEPVENDAS_CONNECTION_STRING` precisa ser sincronizado manualmente (ou via Lambda automática).
+
+## Custos
+
+- TEP Vendas (compartilhado): **~$6/mês**
+- CodeBuild (média 30 builds/mês): **~$2.60/mês**
+- Textract (importadores OCR): **~$0.015 por importação**
 
 ## Monitoramento
 
