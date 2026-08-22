@@ -1,8 +1,10 @@
 # Diagrama de Banco de Dados — TEP Vendas Services
 
-> **37 tabelas** | PostgreSQL 15 | EF Core 6 | Multi-tenant por `CompanyId`
+> **37 tabelas** | PostgreSQL 17 (Aurora Serverless v2) | EF Core 10 | Multi-tenant por `CompanyId`
 >
 > Todas as tabelas herdam de `BaseEntity`: `Id (uuid PK)`, `CreatedAt`, `UpdatedAt`, `UserCreated`, `UserUpdated`, `CompanyId`, `OwnerId`
+>
+> Feature-flags por empresa (CIF/FOB, discount por budget, self-registration) vivem em `company_global_parameters` — **não** em `companies`.
 
 ---
 
@@ -19,12 +21,12 @@ erDiagram
         uuid Id PK
         varchar Name
         varchar Document
-        varchar LogoPath
-        bool DiscountRuleByBudget
-        bool EnableCustomerRegistration
-        bool FreightCIFEnable
-        bool FreightFOBEnable
+        bool IsActive
+        datetime ExpiresAt "nullable"
     }
+
+    %% Feature-flags foram movidas pra company_global_parameters
+    %% (uma linha por Company, seedada por SeedTep.SeedCompanyGlobalParametersAsync)
 
     users {
         uuid Id PK

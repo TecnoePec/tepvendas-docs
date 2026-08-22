@@ -95,6 +95,7 @@ nav:
     - Autenticacao JWT: seguranca/autenticacao.md
     - Multi-tenancy: seguranca/multi-tenancy.md
     - Auditoria: seguranca/auditoria.md
+    - Gestao de Segredos: seguranca/gestao-segredos.md
   - Observabilidade:
     - Visao Geral: observabilidade/observabilidade.md
     - CloudWatch: observabilidade/cloudwatch.md

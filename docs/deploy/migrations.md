@@ -86,6 +86,41 @@ Quando uma migration cria uma nova tabela com `BaseEntity`, o filtro é adiciona
 - **Nome de coluna:** PascalCase (ex: `InitialKilometer`)
 - **Soft delete:** via campo `Status` no enum (não via `IsDeleted`)
 
+## Seeds (dev/staging)
+
+O startup do backend chama `SeedTep.ExecuteAsync()` (Application.cs) que popula dados idempotentes de dev/staging. **Não** roda em produção quando o env é `Production`.
+
+Cadeia de seeds:
+
+1. `SeedCompaniesAsync` — 2 companies (TEP, Major)
+2. `SeedUsersAsync` — usuário `dev@tep.com.br`
+3. `SeedCompanyGlobalParametersAsync` — 1 CGP por Company (sem esse row o mobile crasha no wizard, null check em `companyGlobalParameterProvider`)
+4. **`SeedCatalog.ExecuteAsync()`** — catálogo completo:
+    - 6 ProductLines (IDs `a1000001-…-01..06`)
+    - 6 ProductGroups (IDs `b2000001-…-01..06`)
+    - 8 PaymentConditions (IDs `c3000001-…-01..08`)
+    - 2 PriceTables (IDs `f6000001-…-01..02`)
+    - 16 PaymentPriceTables (IDs `f7010001-…` / `f7020001-…`)
+    - 31 Products (IDs `e5000001-…-01..31`)
+    - 447 PriceTableItems (catálogo compactado em string `ptpcpp=value`)
+5. **`SeedFixtures.ExecuteAsync()`** — dados mínimos pro wizard end-to-end:
+    - 1 DistribuitionCenter (Major Nutrição Animal - Goianira) com endereço em GO
+    - 1 Client (Juliano Menezes) com endereços delivery + billing
+    - 1 DistribuitionCenterClientAddress (link DC ↔ delivery, 30 km)
+6. `SeedDiscountsAndCommissions.ExecuteAsync()` — regras de desconto por volume, regras especiais e comissões (depende de Products).
+
+**Idempotência dupla:** os seeds procuram cada row primeiro por `Id` e, se não achar, por `ExternalCode` (ProductLine `PL-001`, ProductGroup `GRP-001`, etc). Isso garante que uma DB dev que já foi populada manualmente com IDs diferentes não gere duplicatas — o seed detecta pelo `ExternalCode` e pula.
+
+### Migration one-off: NormalizeSeededProductLineIds
+
+`20260803010745_NormalizeSeededProductLineIds` — cleanup pra DBs dev antigas em que ProductLines foram criadas via API antes do `SeedCatalog` existir (IDs random tipo `019fbb50-…`). O SQL:
+
+1. Cria as ProductLines estáveis (`a1000001-…-0N`) copiando dados da órfã
+2. Re-linka `products.ProductLineId` da órfã pra estável
+3. Deleta órfãs sem referência
+
+Safe em DB nova (nenhum match) e em DB já normalizada (idempotente).
+
 ## Tratamento de DateTime (Npgsql 10)
 
 O Npgsql 10 não aceita `DateTime` com `Kind=Unspecified`. Por isso, há um `ValueConverter` aplicado a todas as propriedades `DateTime` em `AppDbContext.OnModelCreating()`:

@@ -59,12 +59,21 @@ graph LR
 **Estágios:**
 
 1. **Source** — CodeStar connection puxa o código
-2. **Build** — CodeBuild:
+2. **Build** — CodeBuild (imagem `aws/codebuild/amazonlinux2-x86_64-standard:5.0`):
+    - Instala Flutter na versão travada `FLUTTER_VERSION=3.38.9` (revalida cache — re-clona se drift)
+    - Instala Android SDK (command-line tools + platforms `android-34` + build-tools `34.0.0`) em `/opt/android-sdk`
     - `flutter pub get`
-    - `flutter analyze`
-    - `flutter test` (530+ testes)
-    - `flutter build apk --release`
-3. **Distribute** — `firebase appdistribution:distribute` envia APK para Firebase App Distribution
+    - `flutter analyze --no-fatal-infos --no-fatal-warnings`
+    - `flutter test`
+    - `flutter build apk --release --dart-define=ENV=production`
+    - `flutter build appbundle --release --dart-define=ENV=production`
+3. **Distribute** — `firebase appdistribution:distribute` envia APK para Firebase App Distribution (falha marcada como não-bloqueante enquanto a auth Firebase não está configurada no CodeBuild).
+
+!!! warning "Versão do Flutter travada"
+    O buildspec clona `flutter/flutter@$FLUTTER_VERSION` em vez do canal `stable`. Isso evita drift silencioso — um incidente anterior (`_ElevatedButtonWithIcon` renomeado internamente em versão nova do SDK) quebrou o build sem que nada tivesse mudado no repo.
+
+!!! tip "Cache do CodeBuild"
+    `/opt/flutter/**`, `/opt/android-sdk/**`, `.dart_tool/**` e `.pub-cache/**` são cacheados no S3 do projeto. Primeira execução dura ~15-25min (baixa SDKs), próximas caem pra ~5-8min.
 
 ## Configurações
 
@@ -105,4 +114,5 @@ Logs do CodeBuild aparecem no CloudWatch em `/aws/codebuild/development-tepvenda
 ## Histórico
 
 - **mar/2026** — Migração de GitHub Actions para AWS CodePipeline (limite de minutos do GitHub Actions atingido)
-- Workflows antigos em `.github/workflows/` foram desativados mas mantidos como referência
+- **ago/2026** — Workflows `.github/workflows/*.yml` **removidos** dos repos backend e mobile — deploy é 100% CodePipeline; os workflows redundantes só geravam notificações falsas (build iOS sem ambiente configurado).
+- **ago/2026** — Buildspec mobile passou a instalar Android SDK explicitamente + travar Flutter version (era `stable`, agora `3.38.9`) — fix definitivo do "No Android SDK found" e do drift do canal stable.
