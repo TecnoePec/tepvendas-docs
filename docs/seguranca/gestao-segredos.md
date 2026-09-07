@@ -38,7 +38,7 @@ Firebase Remote Config keys (com fallback `.env` via `EnvConfig`):
 **Errado** (aconteceu em 2023, remediado em 2026):
 ```dart
 RemoteConfigKeys.googleApiKey: EnvConfig().get('GOOGLE_API_KEY',
-    defaultValue: 'AIzaSyBw2VThzJYVTw38_ovyk3ule6AYgkj4wgg'),
+    defaultValue: '<REDACTED-google-maps-key>'),
 //                ^^^^^^^^^^^^ chave real hard-coded como default
 ```
 
@@ -55,7 +55,10 @@ RemoteConfigKeys.encryptionKey: EnvConfig().get('ENCRYPTION_KEY',
 
 ### 3. Credencial exposta = credencial comprometida
 
-Se um segredo apareceu em git, log, PR review ou screenshot: **revoga imediatamente** — mesmo que "só o time viu". A chave continua no `git log --all -S 'AIzaSy…'` até refazer o history.
+Se um segredo apareceu em git, log, PR review ou screenshot: **revoga imediatamente** — mesmo que "só o time viu". A chave continua no `git log --all -S 'AIza…'` até refazer o history.
+
+!!! warning "Não escreve a chave literal em doc de post-mortem"
+    O scanner do Google Cloud Trust & Safety detecta o formato `AIza…` em qualquer URL pública que ele indexar — incluindo esta documentação. Um doc de incidente que **cita** a chave literal, mesmo pra registrar o que foi deletado, dispara alerta como se o vazamento fosse novo. **Sempre mascara** (ex: `<REDACTED-google-maps-key>`, ou prefixo curto `AIzaSyBw2…`) e mantém a identificação real (project ID, key UID, data) no incidente.
 
 **Fluxo pós-vazamento** (ISO 27001 A.16.1 — resposta a incidente):
 
@@ -81,7 +84,7 @@ O CodeBuild não deve **imprimir** valores de secret em log. Verifica no `builds
 
 | Data | Segredo | Detecção | Remediação |
 |---|---|---|---|
-| ago/2026 | `AIzaSyBw2VThzJYVTw38_ovyk3ule6AYgkj4wgg` (Google Maps API Key, projeto GCP `pc-api-8870686889883584396-428`) | Encontrado em `custom_remote_config.dart:47` durante refactor do mapa | (a) Removido do código, (b) `google_maps_flutter` substituído por `flutter_map`, (c) chave **deletada** via `gcloud services api-keys delete` |
+| ago/2026 | `<REDACTED-google-maps-key>` (Google Maps API Key, projeto GCP `pc-api-8870686889883584396-428`) | Encontrado em `custom_remote_config.dart:47` durante refactor do mapa | (a) Removido do código, (b) `google_maps_flutter` substituído por `flutter_map`, (c) chave **deletada** via `gcloud services api-keys delete` |
 
 ## Ferramentas recomendadas
 
