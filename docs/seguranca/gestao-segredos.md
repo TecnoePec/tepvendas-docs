@@ -85,7 +85,7 @@ O CodeBuild não deve **imprimir** valores de secret em log. Verifica no `builds
 | Data | Segredo | Detecção | Remediação |
 |---|---|---|---|
 | ago/2026 | `<REDACTED-google-maps-key>` (Google Maps API Key, projeto GCP `pc-api-8870686889883584396-428`) | Encontrado em `custom_remote_config.dart:47` durante refactor do mapa | (a) Removido do código, (b) `google_maps_flutter` substituído por `flutter_map`, (c) chave **deletada** via `gcloud services api-keys delete` |
-| set/2026 | Firebase FCM Service Account privkey (projeto Firebase `tepvenda`) | `services/.vscode/launch.json` | (a) Arquivo removido + `.vscode/` gitignored, (b) rotate no Firebase Console (a fazer pelo owner) |
+| set/2026 | Firebase FCM Service Account privkey (projeto Firebase `tepvenda`, key id `d307205e…`) | `services/.vscode/launch.json` | ✅ (a) Arquivo removido + `.vscode/` gitignored, (b) SA nova gerada no Firebase Console e substituída no secret `development.TEPVENDAS_FIREBASE_SA` (nova key id `443f1ee6c2…`), chave antiga deletada 2026-09-20 |
 | set/2026 | SAP B1 password `1234` + user `862` | `services/.vscode/launch.json` | (a) Arquivo removido + `.vscode/` gitignored, (b) rotate no admin SAP B1 (a fazer pelo owner) |
 | set/2026 | `AIzaSyDZ3Vj…` (Firebase Web API Key, projeto Firebase `tepvenda`) | Hardcoded em `FirebaseStorage(Delete)Service.cs:23` | (a) Movida pra env var `FIREBASE_WEB_API_KEY`, (b) restringir por App bundle ID no GCP (a fazer pelo owner) |
 | set/2026 | Comentário com `dev@tep.com.br / 123456` | `FirebaseStorageService.cs:26-27` | Removido. Conta `dev@tep.com.br` já estava `IsActive=false` no Aurora |
