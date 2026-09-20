@@ -85,9 +85,45 @@ O CodeBuild não deve **imprimir** valores de secret em log. Verifica no `builds
 | Data | Segredo | Detecção | Remediação |
 |---|---|---|---|
 | ago/2026 | `<REDACTED-google-maps-key>` (Google Maps API Key, projeto GCP `pc-api-8870686889883584396-428`) | Encontrado em `custom_remote_config.dart:47` durante refactor do mapa | (a) Removido do código, (b) `google_maps_flutter` substituído por `flutter_map`, (c) chave **deletada** via `gcloud services api-keys delete` |
+| set/2026 | Firebase FCM Service Account privkey (projeto Firebase `tepvenda`) | `services/.vscode/launch.json` | (a) Arquivo removido + `.vscode/` gitignored, (b) rotate no Firebase Console (a fazer pelo owner) |
+| set/2026 | SAP B1 password `1234` + user `862` | `services/.vscode/launch.json` | (a) Arquivo removido + `.vscode/` gitignored, (b) rotate no admin SAP B1 (a fazer pelo owner) |
+| set/2026 | `AIzaSyDZ3Vj…` (Firebase Web API Key, projeto Firebase `tepvenda`) | Hardcoded em `FirebaseStorage(Delete)Service.cs:23` | (a) Movida pra env var `FIREBASE_WEB_API_KEY`, (b) restringir por App bundle ID no GCP (a fazer pelo owner) |
+| set/2026 | Comentário com `dev@tep.com.br / 123456` | `FirebaseStorageService.cs:26-27` | Removido. Conta `dev@tep.com.br` já estava `IsActive=false` no Aurora |
+| set/2026 | Certificados Apple `.p12` + `.cer` (development + distribution) | `mobile/certs/**` | (a) Removidos + `certs/` gitignored, (b) revogar+regenerar no Apple Developer Portal (a fazer pelo owner) |
 
-## Ferramentas recomendadas
+## Incidente set/2026 — .vscode/launch.json + Firebase Web key + certs Apple + SAP B1
 
-- **[gitleaks](https://github.com/gitleaks/gitleaks)** — scan do repo antes de push (`gitleaks detect --source .`)
-- **AWS Secrets Manager rotation** — configurar rotation automática pra RDS quando possível
+Durante o setup do **gitleaks** (set/2026) descobrimos 4 vazamentos vivos que
+não tinham sido pegos antes:
+
+1. **`services/.vscode/launch.json`** — o launch de debug local carregava:
+   - Firebase Service Account privkey completa (base64 do JSON) em `FIREBASE_FCM_PRIVATE_KEY`
+   - `MAJOR_SAP_B1_PASSWORD=1234` + username `862` + URL `b1.ativy.com:50211`
+   - Estava **commitado desde o início do repo**, ~2 anos.
+2. **`services/.../FirebaseStorage(Delete)Service.cs`** — a chave Firebase Web
+   `AIzaSyDZ3Vj-BEsNTnAmNnuN4s4zacJvKEXIl_Q` estava hardcoded numa string
+   `_apikey = "…"`. Movida pra env var `FIREBASE_WEB_API_KEY`.
+3. **`services/.../FirebaseStorageService.cs`** — comentário com senha em texto
+   plano: `email = "dev@tep.com.br"; pass = "123456"`.
+4. **`mobile/certs/{development,distribution}/*.p12 + *.cer`** — certificados
+   Apple de assinatura de iOS commitados no repo.
+
+**Remediação aplicada em set/2026:**
+
+- (a) Removidos do working tree
+- (b) `.vscode/` e `certs/` gitignored
+- (c) `.gitleaks.toml` + `.gitleaksignore` em cada repo, com step no buildspec
+    que falha em qualquer segredo NOVO
+- (d) **Rotação das 4 credenciais pelo dono** (runbook: `docs/seguranca/rotacao-set-2026.md`)
+
+Chaves antigas continuam no git history; considerar a rotação completa antes
+de tratar o incidente como fechado.
+
+## Ferramentas em uso
+
+- **[gitleaks](https://github.com/gitleaks/gitleaks)** — instalado em cada
+    buildspec (`services`, `backoffice`, `mobile`). Config em `.gitleaks.toml`,
+    baseline em `.gitleaksignore`. Findings novas quebram o build.
+- **AWS Secrets Manager rotation** — configurar rotation automática pra RDS
+    quando possível
 - **Firebase Remote Config Personalization** — usar em vez de hard-code de defaults

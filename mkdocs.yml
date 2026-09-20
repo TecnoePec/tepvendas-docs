@@ -96,6 +96,7 @@ nav:
     - Multi-tenancy: seguranca/multi-tenancy.md
     - Auditoria: seguranca/auditoria.md
     - Gestao de Segredos: seguranca/gestao-segredos.md
+    - Runbook — Rotacao set/2026: seguranca/rotacao-set-2026.md
   - Observabilidade:
     - Visao Geral: observabilidade/observabilidade.md
     - CloudWatch: observabilidade/cloudwatch.md
