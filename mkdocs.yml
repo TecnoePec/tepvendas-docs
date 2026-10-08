@@ -85,6 +85,7 @@ nav:
     - AWS: deploy/aws.md
     - Terraform: deploy/terraform.md
     - Migrations: deploy/migrations.md
+    - Publicar Google Play: deploy/publicar-google-play.md
   - Dominio:
     - Entidades: dominio/entidades.md
     - Catalogo de Produtos: dominio/catalogo-produtos.md
