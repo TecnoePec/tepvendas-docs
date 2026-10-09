@@ -6,37 +6,42 @@ Production), falta apenas o Service Account configurado + o flag na pipeline.
 
 ## Setup único (fazer agora)
 
-### 1. Criar Service Account no Google Play Console
+### 1. Provisionar a Service Account via Terraform
 
-1. Abre https://play.google.com/console → Setup → **API access**
-2. Se for a primeira vez: Link Google Cloud project (associa com o project
-   `tepvenda` que já existe)
-3. Em **Service accounts** → **Create new service account** → te leva pro
-   Google Cloud IAM
-4. Nome: `play-publisher`, Role: nenhum (perms vêm do Play Console depois)
-5. Volta pro Play Console → recarrega → o SA aparece na lista →
-   **Grant access** → marque:
-   - **Admin (all permissions)** OU
-   - Permissions específicas: Release manager + View app information
-6. Em cima do SA → **View details** → **Keys** tab → **Add key** → JSON →
-   baixa o arquivo (não compartilhar).
-
-### 2. Subir pro AWS Secrets Manager
+Toda a parte GCP + AWS Secrets Manager é um módulo TF auto-contido em
+[tep_vendas_mobile/infra/tf/google_play_sa/](https://github.com/TecnoePec/tep_vendas_mobile/tree/develop/infra/tf/google_play_sa)
+— o README do módulo tem o passo-a-passo completo. Resumo:
 
 ```bash
-aws --profile tecnoepec-dev secretsmanager create-secret \
-  --name development.TEPVENDAS_PLAY_SA \
-  --description "Service Account JSON do Google Play Console para publicação automática do AAB" \
-  --secret-string file://~/Downloads/pc-api-XXXX-YYY.json \
-  --region us-east-1
+gcloud auth application-default login
+aws sso login --profile tecnoepec-dev
+
+cd tep_vendas_mobile/infra/tf/google_play_sa
+terraform init
+terraform apply
 ```
 
-Depois apaga o download local:
-```bash
-rm ~/Downloads/pc-api-*.json
-```
+Isso cria:
 
-### 3. Fazer upload manual do primeiro AAB pro Play Console
+- Service Account `play-publisher@tepvenda.iam.gserviceaccount.com`
+- Habilita APIs `iamcredentials` + `androidpublisher` no project `tepvenda`
+- Chave privada RSA 2048 (JSON)
+- Secret `development.TEPVENDAS_PLAY_SA` no AWS Secrets Manager com o JSON
+
+Rotacionar depois: `terraform taint google_service_account_key.play_publisher && terraform apply`.
+
+### 2. Convidar a SA no Google Play Console (manual — API não existe)
+
+Terraform não cobre essa etapa porque o Play Console tem IAM próprio
+separado do Google Cloud IAM.
+
+1. https://play.google.com/console → **Users and permissions** → **Invite new users**
+2. Email: valor do output `service_account_email` do TF (`play-publisher@tepvenda.iam.gserviceaccount.com`)
+3. Permissions → **Admin (all permissions)** OU específicas: Release manager + View app information
+4. Apps access → seleciona TEP Vendas
+5. Invite — SA aparece ativa imediatamente
+
+### 3. Upload manual do primeiro AAB pro Play Console
 
 O Google Play só aceita upload via API **depois** que você já publicou pelo
 menos uma versão manualmente pela UI. Baixa o `app-release.aab` do último
